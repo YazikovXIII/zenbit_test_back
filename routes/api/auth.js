@@ -6,15 +6,8 @@ const {
   loginUser,
   logoutUser,
   getCurrentUser,
-  updateSubscription,
-  updateAvatar,
 } = require("../../controllers/users");
-const {
-  regSchema,
-  loginSchema,
-  subscriptionSchema,
-} = require("../../schemas/user");
-const upload = require("../../middleware/upload");
+const { regSchema, loginSchema } = require("../../schemas/user");
 
 router.post("/register", async (req, res, next) => {
   try {
@@ -92,46 +85,5 @@ router.get("/current", authenticate, async (req, res, next) => {
     next(error);
   }
 });
-
-router.patch("/", authenticate, async (req, res, next) => {
-  try {
-    const body = req.body;
-    if (!body || Object.keys(body).length === 0) {
-      return res.status(400).json({ message: "Missing fields" });
-    }
-
-    const { error } = subscriptionSchema.validate(body);
-
-    if (error) {
-      return res.status(400).json({ message: error.details[0].message });
-    }
-
-    const { subscription } = body;
-    const userId = req.user.id;
-
-    const updatedUser = await updateSubscription(userId, subscription);
-
-    res.status(200).json(updatedUser);
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.patch(
-  "/avatars",
-  authenticate,
-  upload.single("avatarURL"),
-  async (req, res, next) => {
-    try {
-      const updatedUser = await updateAvatar(req);
-
-      res.status(200).json({
-        avatarURL: updatedUser.avatarURL,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
 
 module.exports = router;
